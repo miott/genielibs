@@ -3,16 +3,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class ActionMeta(type):
-
-    @classmethod
-    def __prepare__(metacls, name, bases):
-        return actiondict
-
-    def __new__(cls, name, bases, actiondict):
-        return type.__new__(cls, name, bases, actiondict)
-
-
 def run_cli(cls, action, data, testbed):
     print('RUN CLI\n{0}'.format(action))
 
@@ -40,3 +30,13 @@ actiondict = {
     'repeat': run_repeat,
     'empty': run_empty
 }
+
+
+class ActionMeta(type):
+
+    @classmethod
+    def __prepare__(metacls, name, bases):
+        return actiondict
+
+    def __new__(cls, name, bases, actiondict):
+        return type.__new__(cls, name, bases, actiondict)
