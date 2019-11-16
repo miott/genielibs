@@ -1,0 +1,35 @@
+testbed:
+    name: yangtest
+    servers:
+        tftp:
+            address: '171.70.42.150'
+            path: ''
+        ntp:
+            server: 'time.google.com'
+devices:
+    # WARNING: device name must match configured hostname
+    Router:
+        alias: uut1
+        type: csr
+        os: iosxe
+        platform: iosxe
+        connections:
+            a:
+                class: unicon.Unicon
+                protocol: ssh
+                ip: 172.27.248.6
+                port: 22
+                username: admin
+                password: admin
+            # netconf:
+            #     class: yang.connector.Netconf
+            #     protocol: netconf
+            #     host: 172.29.11.193
+            #     port: 830
+            #     user: admin
+            #     password: lab
+            #     timeout: 300
+            #     # set all these to False if you have SSH key issues
+            #     hostkey_verify: False
+            #     look_for_keys: True
+            #     allow_agent: True         

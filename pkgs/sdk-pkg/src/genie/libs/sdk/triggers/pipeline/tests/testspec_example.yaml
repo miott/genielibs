@@ -1,0 +1,269 @@
+OpenConfigBGPprofile:
+  source:
+    pkg: genie.libs.sdk
+    class: triggers.pipeline.TestSpec
+  devices: ['uut1']
+  suites:
+    suite1: [BGPglobalTest, BGPneighborTest]
+
+  BGPglobalTest:
+    test_id: 1
+    test_actions:
+      - 
+        action_id: 1
+        banner: "CLEAR BGP CONFIG"
+        action: cli
+        operation: config
+        device: uut1
+        content: 2
+        returns: null
+      -
+        action_id: 2
+        log: "Sleeping for 2 seconds..."
+        action: sleep
+        time: 2
+      -
+        action_id: 11
+        action: timestamp
+        category: start
+        percision: 5
+        storage: bgp-timing.csv
+      -
+        action_id: 3
+        log: "Send BGP edit-config"
+        action: yang
+        protocol: netconf
+        device: uut2
+        content: 4
+        returns: rpc-ok
+      -
+        action_id: 11
+        action: timestamp
+        category: end
+        percision: 5
+        storage: timing.csv
+      -
+        action_id: 4
+        log: "Sleeping for 10 seconds..."
+        action: sleep
+        time: 10
+      -
+        action_id: 5
+        log: "Sending OpenConfig edit-config"
+        action: yang
+        action: netconf
+        device: uut2
+        content: 3
+        returns: 5
+
+  BGPneighborTest:
+    test_id: 2
+    check_health: False
+    test_actions:
+      - 
+        action_id: 1
+        banner: "CLEAR BGP CONFIG"
+        action: cli
+        operation: config
+        device: uut1
+        content: 2
+        returns: null
+      -
+        action_id: 2
+        log: "Sleeping for 2 seconds..."
+        action: sleep
+        time: 2
+      -
+        action_id: 11
+        action: timestamp
+        category: start
+        percision: 5
+        storage: bgp-timing.csv
+      -
+        action_id: 3
+        log: "Send BGP edit-config"
+        action: yang
+        protocol: netconf
+        device: uut2
+        content: 4
+        returns: rpc-ok
+      -
+        action_id: 11
+        action: timestamp
+        category: end
+        percision: 5
+        storage: timing.csv
+      -
+        action_id: 4
+        log: "Sleeping for 10 seconds..."
+        action: sleep
+        time: 10
+      -
+        action_id: 5
+        log: "Sending OpenConfig edit-config"
+        action: yang
+        action: netconf
+        device: uut2
+        content: 3
+        returns: 5
+      -
+        action_id: 6
+        log: "Sending OpenConfig get-config"
+        action: yang
+        action: netconf
+        device: uut2
+        namespace: 6
+        content: 7
+        returns: 8
+      -
+        action_id: 7
+        log: "Verify CLI"
+        action: cli
+        operation: exec
+        device: uut2
+        content: 10
+        op: exec
+        returns: 11
+      -
+        action_id: 8
+        banner: "REPEATING: config/verify 5 times"
+        action: repeat
+        count: 5
+        test_id: 201910240836061571931366 # this could also be zero
+        file_name: repeat.yaml
+        test_actions: [3, 4, 5, 6, 7] # this is optional if test_id is specified
+      -
+        action_id: 9
+        banner: "RUNNING FULL NEIGHBOR SUITE"
+        action: combine
+        tests:
+          -
+            id: 201910241003181571936598
+            file_name: combine.yaml
+            test_actions: [3, 4, 5, 6, 7]
+      -
+        action_id: 9
+        banner: "RUNNING BGP SCALING TEST"
+        action: parallel
+        tests:
+          -
+            id: 201911040811121572883872
+            file_name: parallel.yaml
+            test_actions: [4, 5, 7]
+          -
+            id: 201911040811401572883900
+            file_name: parallel.yaml
+            test_actions: [7, 11]
+          -
+            id: 201911040812021572883922
+            file_name: parallel.yaml
+            test_actions: [2, 4, 7, 8, 14]
+      -
+          action_id: 8
+          action: repeat
+          count: 1
+          test_actions: [1]
+
+# This could be in a separate file
+data:
+  1:
+    type: string
+    content: '<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:779e5f34-c311-4a3d-91c9-160d2209c92e">
+      <data>
+          <network-instances xmlns="http://openconfig.net/yang/network-instance">
+              <network-instance>
+                  <name>default</name>
+                  <protocols>
+                      <protocol>
+                          <identifier xmlns:oc-pol-types="http://openconfig.net/yang/policy-types">oc-pol-types:BGP</identifier>
+                          <name>bgp</name>
+                          <bgp>
+                              <global>
+                                  <config>
+                                      <as>100</as>
+                                      <router-id>1.1.1.1</router-id>
+                                  </config>
+                              </global>
+                          </bgp>
+                          <config>
+                              <identifier xmlns:oc-pol-types="http://openconfig.net/yang/policy-types">oc-pol-types:BGP</identifier>
+                              <name>bgp</name>
+                          </config>
+                      </protocol>
+                  </protocols>
+              </network-instance>
+          </network-instances>
+      </data>
+    </rpc-reply>'
+  2:
+    type: cli
+    content: "no router bgp 100"
+  4:
+    type: xpath
+    namespace: 6
+    nodes:
+      - 
+        node_id: 1
+        value: 100
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/as
+        op: create
+      -
+        node_id: 2
+        node_reference:
+          test_id: 201910291341301572381690
+          file_name: ref_test.yaml
+          data_id: 5
+          node_id: 3 
+      - 
+        node_id: 3
+        value: 1.1.1.1
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/router-id
+        op: create
+  3:
+    type: xpath
+    namespace: 6
+    nodes:
+      -
+        node_id: 1
+        value: 100
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]
+        op: get
+  10:
+    type: cli
+    content: "show run | inc bgp"
+  5:
+    type: xpath
+    namespace: 6
+    nodes:
+      -
+        node_id: 1
+        value: 100
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/as
+      -
+        node_id: 2
+        value: 1.1.1.1
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/router-id
+  6:
+    type: namespace
+    namespace:
+      oc-netinst: http://openconfig.net/yang/network-instance
+      oc-pol-types: http://openconfig.net/yang/policy-types
+  7:
+    type: xpath
+    namespace: 12
+    nodes:
+      -
+        node_id: 1
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]
+        op: get
+  8:
+    type: reference
+    data_id: 1
+  12:
+    type: reference
+    test_id: 201910291341301572381690
+    file_name: other_test.yaml
+    data_id: 12
+  11:
+    type: string
+    content: "router bgp 100"

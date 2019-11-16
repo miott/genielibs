@@ -14,7 +14,7 @@ import logging
 import time
 try:
     from hltapi.exceptions import HltapiError
-except (ImportError, OSError):
+except (Exception, ImportError, OSError):
     class HltapiError(Exception):
         pass
 
