@@ -58,7 +58,7 @@ class TestSpec(Trigger):
 
 class ActionRunner(metaclass=ActionMeta):
 
-    def run(self, action, params={}, testbed={}):
+    def run(self, action={'action': 'empty'}, params={}, testbed={}):
         name = action.get('action', 'empty')
         if not hasattr(self, name):
             name = 'empty'

@@ -20,7 +20,11 @@ def run_repeat(cls, action, data, testbed):
 
 
 def run_empty(cls, action={}, data={}, testbed={}):
-    print('RUN EMPTY\n{0}'.format(action))
+    print('NOT IMPLEMENTED: {0}\n{1}'.format(
+            action.get('action', 'missing'),
+            action
+        )
+    )
 
 
 actiondict = {
