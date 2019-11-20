@@ -8,7 +8,6 @@ def run_cli(cls, action, data, testbed):
 
 def run_yang(cls, action, data, testbed):
     protocol = action.get('protocol')
-    import pdb; pdb.set_trace()
     if protocol == 'netconf':
         return run_netconf(action, data, testbed, cls.log)
     return True
