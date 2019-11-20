@@ -1,9 +1,13 @@
+import sys
+import argparse
 import time
 import logging
 from ats import aetest
+from ats.log.utils import banner
 from ats.utils.objects import find, R
 from genie.utils.loadattr import str_to_list
 from genie.harness.base import Trigger
+from genie.libs.sdk.triggers.blitz.blitz import Blitz
 
 from .actions import ActionMeta
 
@@ -16,50 +20,65 @@ class TestSpec(Trigger):
     """Model Pipeline Test Specification."""
 
     def __init__(self, *args, **kwargs):
-        self.action_runner = ActionRunner()
         super().__init__(*args, **kwargs)
+        self._blitz = Blitz(*args, **kwargs)
+        self.action_runner = ActionRunner()
 
-    def _run_actions(self, actions, testbed):
-        pass_cnt = 0
-        fail_cnt = 0
+    def _step_test(self, step, testbed):
         data = self.parameters.get('data', {})
+        actions = self.parameters.get('test_actions', {})
 
         for action in actions:
-            self.action_runner.run(action, data, testbed)
-            pass_cnt += 1
-        return pass_cnt, fail_cnt
+            name = 'RUN ' + action.get('action', 'unknown')
+            with step.start(name.upper()) as test_step:
+                self.action_runner.run_banner(action)
+                self.action_runner.run_log(action)
+                if not self.action_runner.run(action, data, testbed):
+                    test_step.failed()
 
-    def _step_test(self, step, test, testbed):
-        with step.start(test) as test_step:
-            actions = self.parameters.get(test, {})
-            pass_results, fail_results = self._run_actions(
-                actions.get('test_actions', []),
-                testbed
-            )
-            if fail_results:
-                test_step.failed('{0} failed'.format(fail_results))
-            if pass_results:
-                test_step.passed('{0} failed'.format(pass_results))
+    @aetest.test
+    def configure(self, testbed, preconfig=None):
+        '''Apply configuration on the devices'''
+        return self._blitz._configure(preconfig, testbed)
+
+    @aetest.test
+    def validate_configure(self, steps, testbed, validate_preconfig=None):
+        '''Validate configuration on the devices'''
+        return self._blitz._validate(validate_preconfig, testbed, steps)
 
     @aetest.test
     def run_pipeline_tests(self, testbed, steps, suites={}):
         """Run test actions defined in Model Pipeline tests."""
         # argparse here to catch sys.argv
-        if suites:
-            for name, tests in suites.items():
-                with steps.start('Test Suite {0}'.format(name)) as step:
-                    for test in tests:
-                        self._step_test(step, test, testbed)
-        else:
-            tests = [test for test in self.parameters.keys() if test != 'data']
-            for test in tests:
-                self._step_test(steps, test, testbed)
+        self._step_test(steps, testbed)
+
+    @aetest.test
+    def unconfigure(self, testbed, postconfig=None):
+        '''remove configuration on the devices'''
+        return self._blitz._configure(postconfig, testbed)
+
+    @aetest.test
+    def validate_unconfigure(self, steps, testbed, validate_postconfig=None):
+        '''Validate unconfiguration on the devices'''
+        return self._blitz._validate(validate_postconfig, testbed, steps)
 
 
 class ActionRunner(metaclass=ActionMeta):
+
+    def __init__(self):
+        self.log = logging.getLogger(__name__)
+        self.log.setLevel(logging.DEBUG)
 
     def run(self, action={'action': 'empty'}, params={}, testbed={}):
         name = action.get('action', 'empty')
         if not hasattr(self, name):
             name = 'empty'
         return getattr(self, name)(action, params, testbed)
+
+    def run_banner(self, action):
+        if 'banner' in action:
+            self.log.info(banner(action['banner']))
+
+    def run_log(self, action):
+        if 'log' in action:
+            self.log.debug(action['log'])

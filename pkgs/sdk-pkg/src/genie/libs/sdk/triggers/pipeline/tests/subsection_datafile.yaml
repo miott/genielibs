@@ -1,9 +1,9 @@
 setup: {}
 
-#     sections:
+    # sections:
 
-#       connect:
-#         method: genie.harness.commons.connect
+    #   connect:
+    #     method: genie.harness.commons.connect
 
 #       configure:
 #         method: genie.harness.commons.configure
@@ -21,7 +21,7 @@ setup: {}
 #         method: genie.harness.commons.initialize_traffic
 
 #     #order: ['connect', 'configure', 'configuration_snapshot', 'save_bootvar', 'learn_system_defaults', 'initialize_traffic']
-#     order: []
+    # order: ['connect']
 
 #     processors:
 #       post:

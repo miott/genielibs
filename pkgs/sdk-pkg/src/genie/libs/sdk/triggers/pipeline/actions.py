@@ -1,30 +1,36 @@
-import logging
-
-log = logging.getLogger(__name__)
+from .yangexec import run_netconf
 
 
 def run_cli(cls, action, data, testbed):
-    print('RUN CLI\n{0}'.format(action))
+    cls.log.info('{0}'.format(action))
+    return True
 
 
 def run_yang(cls, action, data, testbed):
-    print('RUN YANG\n{0}'.format(action))
+    protocol = action.get('protocol')
+    import pdb; pdb.set_trace()
+    if protocol == 'netconf':
+        return run_netconf(action, data, testbed, cls.log)
+    return True
 
 
 def run_sleep(cls, action, data, testbed):
-    print('RUN SLEEP\n{0}'.format(action))
+    cls.log.info('{0}'.format(action))
+    return True
 
 
 def run_repeat(cls, action, data, testbed):
-    print('RUN REPEAT\n{0}'.format(action))
+    cls.log.info('{0}'.format(action))
+    return True
 
 
 def run_empty(cls, action={}, data={}, testbed={}):
-    print('NOT IMPLEMENTED: {0}\n{1}'.format(
+    cls.log.error('NOT IMPLEMENTED: {0}\n{1}'.format(
             action.get('action', 'missing'),
             action
         )
     )
+    return True
 
 
 actiondict = {

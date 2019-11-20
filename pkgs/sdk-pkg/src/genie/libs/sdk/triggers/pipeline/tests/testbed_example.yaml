@@ -14,22 +14,22 @@ devices:
         os: iosxe
         platform: iosxe
         connections:
-            a:
+            cli:
                 class: unicon.Unicon
                 protocol: ssh
                 ip: 172.27.248.6
                 port: 22
                 username: admin
                 password: admin
-            # netconf:
-            #     class: yang.connector.Netconf
-            #     protocol: netconf
-            #     host: 172.29.11.193
-            #     port: 830
-            #     user: admin
-            #     password: lab
-            #     timeout: 300
-            #     # set all these to False if you have SSH key issues
-            #     hostkey_verify: False
-            #     look_for_keys: True
-            #     allow_agent: True         
+            netconf:
+                class: yang.connector.Netconf
+                protocol: netconf
+                host: 172.27.248.6
+                port: 830
+                user: admin
+                password: lab
+                timeout: 300
+                # set all these to False if you have SSH key issues
+                hostkey_verify: False
+                look_for_keys: True
+                allow_agent: True         
