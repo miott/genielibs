@@ -62,8 +62,7 @@ def try_lock(uut, target, timer=30, sleeptime=1):
     return False
 
 
-def netconf_send(uut, rpcs, lock=True, target='', lock_retry=40,
-                 variables={}, timeout=30):
+def netconf_send(uut, rpcs, lock=True, lock_retry=40, timeout=30):
     """Handle NETCONF messaging with exceptions caught by pyATS."""
     if not uut.nc.connected:
         uut.nc.connect()
@@ -72,17 +71,13 @@ def netconf_send(uut, rpcs, lock=True, target='', lock_retry=40,
 
     for nc_op, kwargs in rpcs:
 
-        if target and 'target' in kwargs:
-            kwargs['target'] = target
-
         try:
             ret = ''
 
             if nc_op == 'edit-config':
                 if lock:
                     try_lock(uut, kwargs['target'], timer=lock_retry)
-                kwargs['config'] = insert_variables(kwargs['config'],
-                                                    variables)
+
                 ret = uut.nc.edit_config(**kwargs)
                 if lock:
                     uut.nc.unlock(target=kwargs['target'])
@@ -91,28 +86,22 @@ def netconf_send(uut, rpcs, lock=True, target='', lock_retry=40,
                 ret = uut.nc.commit()
 
             elif nc_op == 'get-config':
-                kwargs['config'] = insert_variables(kwargs['config'],
-                                                    variables)
                 ret = uut.nc.get_config(**kwargs)
 
             elif nc_op == 'get':
-                kwargs['filter'] = insert_variables(kwargs['filter'],
-                                                    variables)
                 ret = uut.nc.get(**kwargs)
 
             elif nc_op == 'rpc':
-
-                rpc_cmd = insert_variables(kwargs['rpc_command'], variables)
                 target = 'running'
-                if 'edit-config' in rpc_cmd and lock:
-                    if 'candidate/>' in rpc_cmd:
+                if 'edit-config' in rpcs and lock:
+                    if 'candidate/>' in rpcs:
                         target = 'candidate'
                     try_lock(uut, target, timer=lock_retry)
 
                 # raw return
-                reply = uut.nc.request(rpc_cmd)
+                reply = uut.nc.request(rpcs)
 
-                if 'edit-config' in rpc_cmd and lock:
+                if 'edit-config' in rpcs and lock:
                     uut.nc.unlock(target)
                 return reply
 
@@ -266,22 +255,32 @@ def run_netconf(action, data, testbed, logger):
             ds = 'running'
 
     rpc_data['datastore'] = ds
-    rpc_data['with-defaults'] = rpc_verify.with_defaults
     rpc_data['operation'] = action['operation']
     if rpc_data.get('type', '') == 'xpath':
         ns_index = rpc_data.get('namespace')
         rpc_data.update(data.get(ns_index))
-    # TODO: add custom rpc
+    # TODO: add custom rpc support?
     prt_op, kwargs = gen_ncclient_rpc(rpc_data)
+
     result = netconf_send(uut, [(prt_op, kwargs)])
+
     # rpc-reply should show up in NETCONF log
     if not result:
-        self.log.error('Netconf rpc-reply not received')
+        log.error('Netconf rpc-reply not received')
         return False
 
     errors = [(op, res) for op, res in result if '<rpc-error>' in res]
 
     if errors:
         return False
+
+    if rpc_data['operation'] == 'edit-config':
+        # Verify the get-config TODO: what do we do with custom rpc's?
+        rpc_data['operation'] = 'get-config'
+        rpc_data['datastore'] = 'running'
+        prt_op, kwargs = gen_ncclient_rpc(rpc_data)
+        resp_xml = netconf_send(uut, [(prt_op, kwargs)])
+        resp_elements = rpc_verify.process_rpc_reply(resp_xml)
+        return rpc_verify.verify_rpc_data_reply(resp_elements, rpc_data)
 
     return True

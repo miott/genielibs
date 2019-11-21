@@ -525,6 +525,23 @@ class RpcVerify():
 
         return result
 
+    # Pattern to detect keys in an xpath
+    RE_FIND_KEYS = re.compile(r'\[.*?\]')
+    RE_FIND_PREFIXES = re.compile(r'/.*?:')
+
+    def verify_rpc_data_reply(self, response, rpc_data, opfields=[]):
+        nodes = []
+        for node in rpc_data.get('nodes', []):
+            xpath = re.sub(self.RE_FIND_KEYS, '', node.get('xpath', ''))
+            xpath = re.sub(self.RE_FIND_PREFIXES, '/', xpath)
+            nodes.append(
+                {'value': node.get('value', 'empty'), # TODO: is 'empty' right?
+                 'xpath': xpath,
+                 'selected': True,
+                 'op': '=='}
+            )
+        return self.process_operational_state(response, nodes)
+
     def process_rpc_reply(self, resp):
         """Transform XML into elements with associated xpath.
 
@@ -722,68 +739,6 @@ class RpcVerify():
         if result:
             self.log.debug('OPERATIONAL-VERIFY SUCCESSFUL')
         return result
-
-    @classmethod
-    def make_get(cls, replay, proto_op='get-config', datastore='running',
-                 gentype='raw'):
-        """Given a replay, return expected get or get-config.
-
-        Args:
-          replay (dict): Replay loaded from JSON file.
-          proto_op (str): NETCONF get or get-config operation.
-          datastore (str): YANG datastore target for replay.
-          gentype (str): - "run": returns an RPC in lxml.Element objects
-                         - "raw": returns an RPC in XML form
-        Return:
-          str or lxml.Element: RPC in XML string form or lxml.element objects
-        """
-        try:
-            from ysnetconf import nconf
-            from copy import deepcopy
-        except ImportError:
-            raise ImportError('YANG Suite library required')
-
-        new_replay = deepcopy(replay)
-        new_replay['dsstore'] = datastore
-        new_replay['proto-op'] = proto_op
-
-        segments = new_replay.get('segments', [])
-        deletes = []
-        nsps = {}
-
-        for seg in segments:
-            cfg = seg.get('yang', '')
-            if cfg and cfg['proto-op'] == 'edit-config':
-                cfg['proto-op'] = proto_op
-                if 'modules' not in cfg:
-                    # not a valid task
-                    return (None, None)
-                for mod in cfg.get('modules').values():
-                    if 'configs' not in mod:
-                        continue
-                    nsps = mod.get('namespace_prefixes', {})
-                    for config in mod.get('configs'):
-                        if 'edit-op' in config:
-                            if config.pop('edit-op') in ['delete', 'remove']:
-                                deletes.append('/' + config['xpath'])
-                        if 'value' in config:
-                            config.pop('value')
-
-        # TODO: supposed to be able to have multiple segments per replay?
-        get_rpcs = nconf.gen_task_api({'task': new_replay},
-                                      {'gentype': gentype,
-                                       'dsstore': datastore})
-
-        if gentype == 'run' and deletes:
-            for rpc in get_rpcs['ncrpcs']:
-                if 'filter' in rpc[1]:
-                    objs = rpc[1]['filter']
-                    for del_xpath in deletes:
-                        obj = objs.xpath(del_xpath, namespaces=nsps)
-                        if obj:
-                            obj[0].attrib['excluded'] = 'true'
-
-        return get_rpcs
 
 
 if __name__ == '__main__':
