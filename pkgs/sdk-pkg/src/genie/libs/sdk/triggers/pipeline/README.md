@@ -10,17 +10,19 @@ pip install --upgrade pip
 pip install genie --index-url http://pyats-pypi.cisco.com/simple --trusted-host pyats-pypi.cisco.com
 # Clone genielibs (contains triggers)
 git clone ssh://git@bitbucket-eng-sjc1.cisco.com:7999/pyats-pypi/genielibs.git
+# Clone genieparser (TODO: forget why this is needed)
+git clone ssh://git@bitbucket-eng-sjc1.cisco.com:7999/pyats-pypi/genieparser.git
 # Setup development environment
 cd genielibs
+make develop
+cd ../genieparser
 make develop
 # Model pipeline TestSpec in in genielibs/src/sdk/triggers/pipeline/
 # Test example is in genielibs/src/sdk/triggers/pipeline/tests/
 # Run example:
 pyats run job testspec_example.yaml -t testbed_example.yaml --pdb --no-mail
 
-
-
-git clone ssh://git@bitbucket-eng-sjc1.cisco.com:7999/pyats-pypi/genieparser.git
-  680  cd genieparser/
-  681  ls
-  682  make develop
+# Required libraries
+matplotlib # timestamp action
+yang.connector # ncclient
+deepdiff # CLI diffs

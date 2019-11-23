@@ -20,14 +20,14 @@ devices:
                 ip: 172.27.248.6
                 port: 22
                 username: admin
-                password: admin
+                password: DMIdmi1
             netconf:
                 class: yang.connector.Netconf
                 protocol: netconf
                 host: 172.27.248.6
                 port: 830
                 user: admin
-                password: admin
+                password: DMIdmi1
                 timeout: 300
                 # set all these to False if you have SSH key issues
                 hostkey_verify: False

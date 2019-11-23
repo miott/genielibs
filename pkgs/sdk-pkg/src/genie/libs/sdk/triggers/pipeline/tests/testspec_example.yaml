@@ -9,12 +9,28 @@ BGPglobalTest:
   test_actions:
     -
       action_id: 1
-      banner: "CLEAR BGP CONFIG"
+      banner: "SET INTERFACE DESCRIPTION"
       action: cli
-      operation: config
+      operation: configure
       device: uut1
       content: 2
       returns: null
+    -
+      action_id: 14
+      log: "Verify interface description"
+      action: cli
+      operation: execute
+      device: uut1
+      content: 14
+      returns: 15
+    -
+      action_id: 15
+      banner: "Show interface description"
+      action: cli
+      operation: execute
+      device: uut1
+      content: 14
+      returns: 15
     -
       action_id: 2
       log: "Sleeping for 2 seconds..."
@@ -69,9 +85,9 @@ BGPneighborTest:
   test_actions:
     -
       action_id: 1
-      banner: "CLEAR BGP CONFIG"
+      banner: "SET INTERFACE DESCRIPTION"
       action: cli
-      operation: config
+      operation: configure
       device: uut1
       content: 2
       returns: null
@@ -129,7 +145,7 @@ BGPneighborTest:
       action_id: 7
       log: "Verify CLI"
       action: cli
-      operation: exec
+      operation: execute
       device: uut2
       content: 10
       op: exec
@@ -208,8 +224,14 @@ data:
       </data>
     </rpc-reply>'
   2:
-    type: cli
-    content: "no router bgp 100"
+    type: string
+    content: "int g2\ndescription testspec rules!"
+  14:
+    type: string
+    content: "sho run int g2 | inc description"
+  15:
+    type: string
+    content: "description testspec rules!"
   4:
     type: xpath
     namespace: 6

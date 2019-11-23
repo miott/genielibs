@@ -47,7 +47,7 @@ class TestSpec(Trigger):
         return self._blitz._validate(validate_preconfig, testbed, steps)
 
     @aetest.test
-    def run_pipeline_tests(self, testbed, steps, suites={}):
+    def run_pipeline_test(self, testbed, steps, suites={}):
         """Run test actions defined in Model Pipeline tests."""
         # argparse here to catch sys.argv
         self._step_test(steps, testbed)

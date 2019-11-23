@@ -229,6 +229,8 @@ def run_netconf(action, data, testbed, logger):
     if not hasattr(uut, 'nc'):
         uut.connect(alias='nc', via='netconf')
         uut.nc.raise_mode = RaiseMode.NONE
+    elif hasattr(uut, 'nc') and not uut.nc.connected:
+        uut.nc.connect()
     rpc_verify = RpcVerify(
         log=logger,
         capabilities=list(uut.nc.server_capabilities)
