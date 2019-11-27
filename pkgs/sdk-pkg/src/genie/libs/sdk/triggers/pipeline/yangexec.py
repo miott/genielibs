@@ -2,8 +2,10 @@ import logging
 import traceback
 from jinja2 import Template
 from ncclient.operations import RaiseMode
+from ats.log.utils import banner
 from .rpcbuilder import YSNetconfRPCBuilder
 from .rpcverify import RpcVerify
+from .utility import DataRetriever
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -235,15 +237,10 @@ def run_netconf(action, data, testbed, logger):
         log=logger,
         capabilities=list(uut.nc.server_capabilities)
     )
-    content = action.get('content', {})
-    if not content:
+    rpc_data, opfields = DataRetriever.get_data(action, data)
+    if not rpc_data:
         logger.error('NETCONF message data index not present')
         return False
-    rpc_data = data.get(content)
-    if not rpc_data:
-        logger.error('NETCONF message data not present')
-        return False
-
     ds = action.get('datastore', '')
     if not ds:
         if len(rpc_verify.datastore) > 1:
@@ -258,9 +255,6 @@ def run_netconf(action, data, testbed, logger):
 
     rpc_data['datastore'] = ds
     rpc_data['operation'] = action['operation']
-    if rpc_data.get('type', '') == 'xpath':
-        ns_index = rpc_data.get('namespace')
-        rpc_data.update(data.get(ns_index))
     # TODO: add custom rpc support?
     prt_op, kwargs = gen_ncclient_rpc(rpc_data)
 
@@ -268,12 +262,13 @@ def run_netconf(action, data, testbed, logger):
 
     # rpc-reply should show up in NETCONF log
     if not result:
-        log.error('Netconf rpc-reply not received')
+        log.error(banner('NETCONF rpc-reply NOT RECIEVED'))
         return False
 
     errors = [(op, res) for op, res in result if '<rpc-error>' in res]
 
     if errors:
+        log.error(banner('NETCONF MESSAGE ERRORED'))
         return False
 
     if rpc_data['operation'] == 'edit-config':
@@ -284,5 +279,11 @@ def run_netconf(action, data, testbed, logger):
         resp_xml = netconf_send(uut, [(prt_op, kwargs)])
         resp_elements = rpc_verify.process_rpc_reply(resp_xml)
         return rpc_verify.verify_rpc_data_reply(resp_elements, rpc_data)
+    elif rpc_data['operation'] == 'get':
+        if not opfields:
+            log.error(banner('No NETCONF data to compare rpc-reply to.'))
+            return False
+        resp_elements = rpc_verify.process_rpc_reply(resp_xml)
+        return rpc_verify.process_operational_state(resp_elements, opfields)
 
     return True

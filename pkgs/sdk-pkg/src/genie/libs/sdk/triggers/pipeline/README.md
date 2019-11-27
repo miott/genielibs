@@ -26,3 +26,5 @@ pyats run job testspec_example.yaml -t testbed_example.yaml --pdb --no-mail
 matplotlib # timestamp action
 yang.connector # ncclient
 deepdiff # CLI diffs
+yamlordereddictloader
+pyyaml

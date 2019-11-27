@@ -4,8 +4,6 @@ BGPglobalTest:
     class: triggers.pipeline.TestSpec
   devices: ['uut1']
   test_id: 1
-  configure: {}
-  validate_configure: {}
   test_actions:
     -
       action_id: 1
@@ -71,8 +69,6 @@ BGPglobalTest:
       device: uut1
       content: 3
       returns: 5
-  unconfigure: {}
-  validate_unconfigure: {}
 
 BGPneighborTest:
   source:
@@ -80,8 +76,6 @@ BGPneighborTest:
     class: triggers.pipeline.TestSpec
   devices: ['uut1']
   test_id: 2
-  configure: {}
-  validate_configure: {}
   test_actions:
     -
       action_id: 1
@@ -189,8 +183,6 @@ BGPneighborTest:
         action: repeat
         count: 1
         test_actions: [1]
-  unconfigure: {}
-  validate_unconfigure: {}
 
 # This could be in a separate file
 data:
@@ -268,7 +260,7 @@ data:
         xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]
         op: get
   10:
-    type: cli
+    type: string
     content: "show run | inc bgp"
   5:
     type: xpath
@@ -284,7 +276,7 @@ data:
         xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/router-id
   6:
     type: namespace
-    namespace:
+    content:
       oc-netinst: http://openconfig.net/yang/network-instance
       oc-pol-types: http://openconfig.net/yang/policy-types
   7:

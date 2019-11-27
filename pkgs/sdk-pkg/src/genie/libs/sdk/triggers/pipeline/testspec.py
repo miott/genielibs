@@ -21,7 +21,6 @@ class TestSpec(Trigger):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._blitz = Blitz(*args, **kwargs)
         self.action_runner = ActionRunner()
 
     def _step_test(self, step, testbed):
@@ -37,30 +36,10 @@ class TestSpec(Trigger):
                     test_step.failed()
 
     @aetest.test
-    def configure(self, testbed, preconfig=None):
-        '''Apply configuration on the devices'''
-        return self._blitz._configure(preconfig, testbed)
-
-    @aetest.test
-    def validate_configure(self, steps, testbed, validate_preconfig=None):
-        '''Validate configuration on the devices'''
-        return self._blitz._validate(validate_preconfig, testbed, steps)
-
-    @aetest.test
     def run_pipeline_test(self, testbed, steps, suites={}):
         """Run test actions defined in Model Pipeline tests."""
         # argparse here to catch sys.argv
         self._step_test(steps, testbed)
-
-    @aetest.test
-    def unconfigure(self, testbed, postconfig=None):
-        '''remove configuration on the devices'''
-        return self._blitz._configure(postconfig, testbed)
-
-    @aetest.test
-    def validate_unconfigure(self, steps, testbed, validate_postconfig=None):
-        '''Validate unconfiguration on the devices'''
-        return self._blitz._validate(validate_postconfig, testbed, steps)
 
 
 class ActionRunner(metaclass=ActionMeta):
@@ -77,7 +56,7 @@ class ActionRunner(metaclass=ActionMeta):
 
     def run_banner(self, action):
         if 'banner' in action:
-            self.log.info(banner(action['banner']))
+            self.log.debug(banner(action['banner']))
 
     def run_log(self, action):
         if 'log' in action:

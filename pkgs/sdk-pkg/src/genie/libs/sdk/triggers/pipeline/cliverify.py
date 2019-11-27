@@ -1,6 +1,8 @@
 import logging
 import re
 from deepdiff import DeepDiff
+from ats.log.utils import banner
+from .utility import DataRetriever
 
 
 class CliVerify:
@@ -13,24 +15,8 @@ class CliVerify:
         # check if connected
         if not hasattr(self.uut, 'cli'):
             self.uut.connect(alias='cli', via=self.connection)
-        cmd = data.get(action.get('content', {}))
-        if cmd.get('type') == 'string':
-            self.cmd = cmd.get('content')
-        elif cmd.get('type') == 'reference':
-            self.cmd = data.get(cmd.get('content'))
-
-        if not self.cmd:
-            self.log.error('CLI message data not present')
-
+        self.cmd, self.returns = DataRetriever.get_data(action, data)
         self.operation = action.get('operation')
-        returns = data.get(action.get('returns', ''))
-        if returns:
-            if returns.get('type') == 'string':
-                self.returns = returns.get('content')
-            elif returns.get('type') == 'reference':
-                self.returns = data.get(returns.get('content'))
-        else:
-            self.returns = None
         self.cc = CiscoConfig()
 
     def run_cli(self):
@@ -59,13 +45,14 @@ class CliVerify:
             )
             if added:
                 self.log.error('Extra CLI:\n{0}'.format(added))
+                self.log.error(banner('CLI VERIFICATION FAILED'))
                 result = False
             if removed:
                 self.log.error('Missing CLI:\n{0}'.format(removed))
+                self.log.error(banner('CLI VERIFICATION FAILED'))
                 result = False
-        elif self.cc.normalize(self.cmd) != self.cc.normalize(resp):
-            self.log.error("CLI command failed:\n{0}".format(resp))
-            return True
+        if result:
+            self.log.debug(banner('CLI VERIFICATION SUCCEDED'))
         return result
 
     def before_rpc(self, cmd, counter, xpath, kind=''):
@@ -223,7 +210,7 @@ class CiscoConfig:
 
         for line in cfg.splitlines():
 
-            if not line.split():
+            if not line.strip():
                 # empty line
                 continue
             if "--More--" in line:
