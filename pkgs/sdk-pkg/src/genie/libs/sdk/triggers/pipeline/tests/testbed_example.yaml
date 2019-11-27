@@ -6,6 +6,10 @@ testbed:
             path: ''
         ntp:
             server: 'time.google.com'
+    custom:
+        variables:
+            interface: GigabitEthernet2
+            inttype: ianaift:ethernetCsmacd
 devices:
     # WARNING: device name must match configured hostname
     Router:

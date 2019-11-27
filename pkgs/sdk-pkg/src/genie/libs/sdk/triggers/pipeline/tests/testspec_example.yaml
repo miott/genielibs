@@ -185,6 +185,9 @@ BGPneighborTest:
         test_actions: [1]
 
 # This could be in a separate file
+variables:
+    policy_type: oc-pol-types:BGP
+
 data:
   1:
     type: string
@@ -195,7 +198,7 @@ data:
                   <name>default</name>
                   <protocols>
                       <protocol>
-                          <identifier xmlns:oc-pol-types="http://openconfig.net/yang/policy-types">oc-pol-types:BGP</identifier>
+                          <identifier xmlns:oc-pol-types="http://openconfig.net/yang/policy-types">{{policy_type}}</identifier>
                           <name>bgp</name>
                           <bgp>
                               <global>
@@ -206,7 +209,7 @@ data:
                               </global>
                           </bgp>
                           <config>
-                              <identifier xmlns:oc-pol-types="http://openconfig.net/yang/policy-types">oc-pol-types:BGP</identifier>
+                              <identifier xmlns:oc-pol-types="http://openconfig.net/yang/policy-types">{{policy_type}}</identifier>
                               <name>bgp</name>
                           </config>
                       </protocol>
@@ -235,20 +238,20 @@ data:
         op: create
       -
         node_id: 2
-        value: oc-pol-types:BGP
-        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]/oc-netinst:identifier
+        value: '{{policy_type}}'
+        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="{{policy_type}}"][oc-netinst:name="bgp"]/oc-netinst:identifier
       - 
         node_id: 3
         value: bgp
-        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]/oc-netinst:name
+        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="{{policy_type}}"][oc-netinst:name="bgp"]/oc-netinst:name
       -
         node_id: 4
         value: 100
-        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]/oc-netinst:bgp/oc-netinst:global/oc-netinst:config/oc-netinst:as
+        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="{{policy_type}}"][oc-netinst:name="bgp"]/oc-netinst:bgp/oc-netinst:global/oc-netinst:config/oc-netinst:as
       -
         node_id: 5
         value: 1.1.1.1
-        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]/oc-netinst:bgp/oc-netinst:global/oc-netinst:config/oc-netinst:router-id
+        xpath: /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:protocols/oc-netinst:protocol[oc-netinst:identifier="{{policy_type}}"][oc-netinst:name="bgp"]/oc-netinst:bgp/oc-netinst:global/oc-netinst:config/oc-netinst:router-id
         op: create
   3:
     type: xpath
@@ -257,7 +260,7 @@ data:
       -
         node_id: 1
         value: 100
-        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="{{policy_type}}"][oc-netinst:name="bgp"]
         op: get
   10:
     type: string
@@ -269,11 +272,11 @@ data:
       -
         node_id: 1
         value: 100
-        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/as
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="{{policy_type}}"]/bgp/global/config/as
       -
         node_id: 2
         value: 1.1.1.1
-        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"]/bgp/global/config/router-id
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="{{policy_type}}"]/bgp/global/config/router-id
   6:
     type: namespace
     content:
@@ -285,7 +288,7 @@ data:
     nodes:
       -
         node_id: 1
-        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="oc-pol-types:BGP"][oc-netinst:name="bgp"]
+        xpath: /network-instances/network-instance[name="default"]/protocols/protocol[identifier="{{policy_type}}"][oc-netinst:name="bgp"]
         op: get
   8:
     type: reference

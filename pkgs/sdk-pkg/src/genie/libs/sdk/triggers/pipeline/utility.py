@@ -20,11 +20,13 @@ class DataRetriever:
             return self.get_reference_data(
                 data_content,
                 data_content.get(source),
-                source)
+                source
+            )
         elif content_type == 'file':
             return self.get_file_data(
                 data_content.get('filename'),
-                source)
+                source
+            )
 
     @classmethod
     def get_content_data(cls, action, data):

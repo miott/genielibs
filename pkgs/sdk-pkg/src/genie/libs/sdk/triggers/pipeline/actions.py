@@ -9,6 +9,7 @@ def run_cli(cls, action, data, testbed):
     cliv = CliVerify(action, testbed, data, cls.log)
     return cliv.run_cli()
 
+
 def run_yang(cls, action, data, testbed):
     protocol = action.get('protocol')
     if protocol == 'netconf':

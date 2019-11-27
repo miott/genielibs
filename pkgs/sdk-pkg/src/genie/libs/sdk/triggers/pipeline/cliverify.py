@@ -15,6 +15,8 @@ class CliVerify:
         # check if connected
         if not hasattr(self.uut, 'cli'):
             self.uut.connect(alias='cli', via=self.connection)
+        elif hasattr(self.uut, 'cli') and not self.uut.cli.connected:
+            self.uut.cli.connect()
         self.cmd, self.returns = DataRetriever.get_data(action, data)
         self.operation = action.get('operation')
         self.cc = CiscoConfig()
@@ -28,7 +30,6 @@ class CliVerify:
         result = True
 
         try:
-            # TODO: insert variables
             self.log.debug('CLI SEND:\n{0}'.format(self.cmd))
             resp = getattr(self.uut.cli, self.operation)(self.cmd)
             # TODO diff it? do a before after? just look for return?
