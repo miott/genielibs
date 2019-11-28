@@ -27,6 +27,7 @@ class TestSpec(Trigger):
         tb_dict = self.parameters['testbed']._to_dict()
         self.variables = tb_dict.get('custom', {}).get('variables', {})
         self.data = {}
+        self.actions = []
         self.action_runner = ActionRunner()
     
     @property
@@ -35,10 +36,10 @@ class TestSpec(Trigger):
 
     @data.setter
     def data(self, param_data):
+        self.variables.update(self.parameters.get('variables', {}))
         if not param_data:
             self._data = {}
         else:
-            self.variables.update(self.parameters.get('variables', {}))
             data_str = yaml.dump(
                 param_data,
                 Dumper=yamlordereddictloader.Dumper
@@ -46,6 +47,25 @@ class TestSpec(Trigger):
             data_str = self._substitute_variables(data_str)
             self._data = yaml.load(
                 data_str,
+                Loader=yamlordereddictloader.Loader
+            )
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @actions.setter
+    def actions(self, param_actions):
+        if not param_actions:
+            self._actions = []
+        else:
+            actions_str = yaml.dump(
+                param_actions,
+                Dumper=yamlordereddictloader.Dumper
+            )
+            actions_str = self._substitute_variables(actions_str)
+            self._actions = yaml.load(
+                actions_str,
                 Loader=yamlordereddictloader.Loader
             )
 
@@ -67,9 +87,10 @@ class TestSpec(Trigger):
     def _step_test(self, step, testbed):
         if not self.data:
             self.data = self.parameters.get('data', {})
-        actions = self.parameters.get('test_actions', {})
+        if not self.actions:
+            self.actions = self.parameters.get('test_actions', {})
 
-        for action in actions:
+        for action in self.actions:
             name = 'RUN ' + action.get('action', 'unknown')
             with step.start(name.upper()) as test_step:
                 self.action_runner.run_banner(action)

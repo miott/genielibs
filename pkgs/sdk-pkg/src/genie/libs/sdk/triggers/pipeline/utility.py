@@ -30,7 +30,10 @@ class DataRetriever:
 
     @classmethod
     def get_content_data(cls, action, data):
-        content = data.get(action.get('content', {}))
+        content_idx = action.get('content', {})
+        if not content_idx:
+            return []
+        content = data.get(content_idx)
         if not content:
             # no expected content data
             return content
@@ -42,7 +45,10 @@ class DataRetriever:
 
     @classmethod
     def get_returns_data(cls, action, data):
-        content = data.get(action.get('returns', {}))
+        content_idx = action.get('returns', {})
+        if not content_idx:
+            return []
+        content = data.get(content_idx)
         if not content:
             # no expected return data
             return content
