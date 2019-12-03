@@ -132,7 +132,6 @@ BGPneighborTest:
       protocol: netconf
       operation: edit-config
       device: uut1
-      namespace: 6
       content: 7
       returns: 8
     -

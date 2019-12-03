@@ -34,7 +34,7 @@ class CliVerify:
             resp = getattr(self.uut.cli, self.operation)(self.cmd)
             # TODO diff it? do a before after? just look for return?
         except Exception as e:
-            self.log.error("CLI command failed:\n{0}error:\n{1}".format(
+            self.log.error("CLI command failed:\n{0}\nERROR:\n{1}".format(
                 self.cmd, e
             ))
             raise e

@@ -81,6 +81,8 @@ def netconf_send(uut, rpcs, lock=True, lock_retry=40, timeout=30):
                     try_lock(uut, kwargs['target'], timer=lock_retry)
 
                 ret = uut.nc.edit_config(**kwargs)
+                if kwargs.get('target', '') == 'candidate':
+                    ret = uut.nc.commit()
                 if lock:
                     uut.nc.unlock(target=kwargs['target'])
 
