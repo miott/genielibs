@@ -1,5 +1,6 @@
 import logging
 import traceback
+from copy import deepcopy
 from jinja2 import Template
 from ncclient.operations import RaiseMode
 from ats.log.utils import banner
@@ -81,7 +82,7 @@ def netconf_send(uut, rpcs, lock=True, lock_retry=40, timeout=30):
                     try_lock(uut, kwargs['target'], timer=lock_retry)
 
                 ret = uut.nc.edit_config(**kwargs)
-                if kwargs.get('target', '') == 'candidate':
+                if ret.ok and kwargs.get('target', '') == 'candidate':
                     ret = uut.nc.commit()
                 if lock:
                     uut.nc.unlock(target=kwargs['target'])
@@ -275,9 +276,15 @@ def run_netconf(action, data, testbed, logger):
 
     if rpc_data['operation'] == 'edit-config':
         # Verify the get-config TODO: what do we do with custom rpc's?
-        rpc_data['operation'] = 'get-config'
-        rpc_data['datastore'] = 'running'
-        prt_op, kwargs = gen_ncclient_rpc(rpc_data)
+        rpc_clone = deepcopy(rpc_data)
+        rpc_clone['operation'] = 'get-config'
+        rpc_clone['datastore'] = 'running'
+        for node in rpc_clone.get('nodes'):
+            if 'value' in node:
+                node.pop('value')
+            if 'edit-op' in node:
+                node.pop('edit-op')
+        prt_op, kwargs = gen_ncclient_rpc(rpc_clone)
         resp_xml = netconf_send(uut, [(prt_op, kwargs)])
         resp_elements = rpc_verify.process_rpc_reply(resp_xml)
         return rpc_verify.verify_rpc_data_reply(resp_elements, rpc_data)

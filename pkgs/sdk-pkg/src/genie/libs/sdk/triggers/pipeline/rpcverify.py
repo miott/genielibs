@@ -532,14 +532,23 @@ class RpcVerify():
     def verify_rpc_data_reply(self, response, rpc_data, opfields=[]):
         nodes = []
         for node in rpc_data.get('nodes', []):
+            edit_op = node.get('edit-op')
+            if edit_op in ['delete', 'remove']:
+                continue
             xpath = re.sub(self.RE_FIND_KEYS, '', node.get('xpath', ''))
             xpath = re.sub(self.RE_FIND_PREFIXES, '/', xpath)
+            value = node.get('value', '')
+            if not value:
+                value = 'empty'
             nodes.append(
-                {'value': node.get('value', 'empty'), # TODO: is 'empty' right?
+                {'name': xpath.split('/')[-1],
+                 'value': value,
                  'xpath': xpath,
                  'selected': True,
                  'op': '=='}
             )
+        if not response and not nodes and edit_op in ['delete', 'remove']:
+            return True
         return self.process_operational_state(response, nodes)
 
     def process_rpc_reply(self, resp):
